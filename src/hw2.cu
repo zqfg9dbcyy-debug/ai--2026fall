@@ -9,12 +9,11 @@
 #include <stdexcept>
 
 class Tensor{
+    public:
     std::string device;
     float *data = nullptr;
     std::size_t n = 0;
     std::vector<size_t> shape;
-
-public:
     Tensor(std::vector<size_t> a, std::string d){
         shape = a;
         device = d;
@@ -118,3 +117,49 @@ public:
         }
     }
 };
+
+__global__ void ReLU(float *input,float *output,int N){
+    int i=blockDim.x*blockIdx.x+threadIdx.x;
+    if(i<N){
+        output[i]=input[i]>0?input[i]:0;
+    }
+}
+
+__global__ void ReLU_Forward(float *input,float *grad_output,float *grad_input,int N){
+    int i=blockDim.x*blockIdx.x+threadIdx.x;
+    if(i<N){
+        grad_output[i]=input[i]>0?grad_input[i]:0;
+    }
+}
+
+__global__ void sigmoid(float *input,float *output,int N){
+    int i=blockDim.x*blockIdx.x+threadIdx.x;
+    if(i<N){
+        if(input[i]>=0){
+            output[i]=1/(1+expf(-input[i]));
+        }
+        else{
+            float e=exp(-input[i]);
+            output[i]=1/(1+e);
+        }
+    }
+}
+
+__global__ void sigmoid_Forward(float *input,float *grad_output,float *grad_input,int N){
+    int i=blockDim.x*blockIdx.x+threadIdx.x;
+    if(i<N){
+        float x;
+        if(input[i]>=0){
+            x=1/(1+expf(-input[i]));
+        }
+        else{
+            float e=exp(-input[i]);
+            x=1/(1+e);
+        }
+        grad_output[i]=grad_input[i]*(1-x)*x;
+    }
+}
+
+int main(){
+    
+}
