@@ -118,48 +118,52 @@ class Tensor{
     }
 };
 
-__global__ void ReLU(float *input,float *output,int N){
+__global__ void ReLU(Tensor &input,Tensor &output,int N){
     int i=blockDim.x*blockIdx.x+threadIdx.x;
     if(i<N){
-        output[i]=input[i]>0?input[i]:0;
+        output.data[i]=input.data[i]>0?input.data[i]:0;
     }
 }
 
-__global__ void ReLU_Forward(float *input,float *grad_output,float *grad_input,int N){
+__global__ void ReLU_Forward(Tensor &input,Tensor &grad_output,Tensor &grad_input,int N){
     int i=blockDim.x*blockIdx.x+threadIdx.x;
     if(i<N){
-        grad_output[i]=input[i]>0?grad_input[i]:0;
+        grad_output.data[i]=input.data[i]>0?grad_input.data[i]:0;
     }
 }
 
-__global__ void sigmoid(float *input,float *output,int N){
+__global__ void sigmoid(Tensor &input,Tensor &output,int N){
     int i=blockDim.x*blockIdx.x+threadIdx.x;
     if(i<N){
-        if(input[i]>=0){
-            output[i]=1/(1+expf(-input[i]));
+        if(input.data[i]>=0){
+            output.data[i]=1/(1+expf(-input.data[i]));
         }
         else{
-            float e=exp(-input[i]);
-            output[i]=1/(1+e);
+            float e=exp(-input.data[i]);
+            output.data[i]=1/(1+e);
         }
     }
 }
 
-__global__ void sigmoid_Forward(float *input,float *grad_output,float *grad_input,int N){
+__global__ void sigmoid_Forward(Tensor &input,Tensor &grad_output,Tensor &grad_input,int N){
     int i=blockDim.x*blockIdx.x+threadIdx.x;
     if(i<N){
         float x;
-        if(input[i]>=0){
-            x=1/(1+expf(-input[i]));
+        if(input.data[i]>=0){
+            x=1/(1+expf(-input.data[i]));
         }
         else{
-            float e=exp(-input[i]);
+            float e=exp(-input.data[i]);
             x=1/(1+e);
         }
-        grad_output[i]=grad_input[i]*(1-x)*x;
+        grad_output.data[i]=grad_input.data[i]*(1-x)*x;
     }
 }
 
 int main(){
-    
+    Tensor input({2,3},"CPU");
+    std::vector<float> v={2,-1,3,4,-3,0};
+    for(int i=0;i<v.size();++i){
+        input.data[i]=v[i];
+    }
 }
